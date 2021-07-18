@@ -35,6 +35,7 @@ __version__ = '0.1'
 
 
 def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
+                     focus_frequency=217.0, focus_window=4.0,
                      showplot=False):
     """ Plot the spectogram recorded from the phone's microphone.
 
@@ -53,6 +54,14 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
     nperseg : int
         The number of samples per segment to use when calculating the
         spectrogram. Must be positive.
+    focus_frequency : float, optional
+        The frequency in Hz to center the last subplot on (the
+        focus). Must be positive, finite, and non-NaN. The default is
+        217 Hz.
+    focus_window : float, optional
+        The width in Hz of the frequency window to focus on in the last
+        suplot. Must be positive, finite, and non-NaN. The default is 4
+        Hz.
     showplot : bool, optional
         Whether a plot of the spectrogram should be shown in a GUI
         window or not (default) at the end of processing.
@@ -80,6 +89,16 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
         raise ValueError('nperseg must be positive.')
     if not isinstance(showplot, bool):
         raise TypeError('showplot must be bool')
+    if not isinstance(focus_frequency, float):
+        raise TypeError('focus_frequency must be float.')
+    if not numpy.isfinite(focus_frequency) or focus_frequency <= 0:
+        raise ValueError('focus_frequency must be positive, non-NaN, '
+                         'and finite.')
+    if not isinstance(focus_window, float):
+        raise TypeError('focus_window must be float.')
+    if not numpy.isfinite(focus_window) or focus_window <= 0:
+        raise ValueError('focus_window must be positive, non-NaN, '
+                         'and finite.')
     # Read the data and convert to float.
     sample_frequency, raw_data = scipy.io.wavfile.read(sound_file)
     data = raw_data.astype('float32')
@@ -100,25 +119,41 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
                       fmt='%.9g', delimiter=', ', comments='# ',
                       header='Frequency (Hz), Power Spectrum (A^2/Hz)')
 
-    # Make the plot. There will be three subplots, each above the other
-    # that plot the spectrum from 0 Hz up to an upper frequency limit
-    # which is different for each one. The upper frequency limits start
-    # from the maximum available and work their way down to smaller and
-    # smaller fequencies.
+    # Make the plot. There will be four subplots, each above the other
+    # that plot the spectrum with different fequency limits. The first
+    # three gofrom 0 Hz up to an upper frequency limit
+    # which starts from the maximum available and works its way down to
+    # smaller and smaller fequencies. The fourth one zooms in on the
+    # focus frequency.
     if plot_file is not None or showplot:
-        fig, axs = plt.subplots(3, 1, figsize=(7.5, 10),
+        fig, axs = plt.subplots(4, 1, figsize=(7.5, 10),
                                 constrained_layout=True)
-        for i, upper_freq in enumerate((None, 5e3, 500.0)):
+        for i, (lower_freq, upper_freq) in enumerate(
+                ((None, None), (None, 5e3), (None, 500.0),
+                 (focus_frequency - 0.5 * focus_window,
+                  focus_frequency + 0.5 * focus_window))):
             ax = axs[i]
             if upper_freq is None:
-                selector = slice(None)
+                if lower_freq is None:
+                    selector = slice(None)
+                else:
+                    selector = f >= lower_freq
             else:
-                selector = f <= upper_freq
+                if lower_freq is None:
+                    selector = f <= upper_freq
+                else:
+                    selector = numpy.logical_and(f >= lower_freq,
+                                                 f <= upper_freq)
             ax.semilogy(f[selector], pwelch[selector], '-k')
             ax.set_xlabel('Frequency (Hz)')
             ax.set_ylabel('Power Spectrum (A$^2$ / Hz)')
             if upper_freq is not None:
-                ax.set_xlim((0, upper_freq))
+                if lower_freq is not None:
+                    ax.set_xlim((lower_freq, upper_freq))
+                else:
+                    ax.set_xlim((0, upper_freq))
+            elif lower_freq is not None:
+                ax.set_xlim((lower_freq, ax.get_xlim()[1]))
             ax.grid('on')
             ax.tick_params(top=True, right=True)
         if plot_file is not None:
@@ -167,6 +202,15 @@ def _get_parser():
                         'resolution but result in less segments to '
                         'average together (more noise). The default is '
                         '2**18 = 262144.')
+    parser.add_argument('-f', '--focus-frequency', type=float,
+                        default=217.0,
+                        help='The center frequency in Hz to focus on '
+                        'in the last subplot. The default is 217 Hz.')
+    parser.add_argument('-w', '--focus-window', type=float,
+                        default=4.0,
+                        help='The full width of the fequency window '
+                        'in Hz to focus on in the last subplot. The '
+                        'default is 4 Hz.')
     parser.add_argument('-s', '--show-plot', action='store_true',
                         help='Show a plot of the spectrogram in a GUI '
                         'window when done processing.')
@@ -199,6 +243,8 @@ def main(argv=None):
 
     # Run.
     plot_spectrogram(args.soundfile, args.csv, args.plot, args.n,
+                     focus_frequency=args.focus_frequency,
+                     focus_window=args.focus_window,
                      showplot=args.show_plot)
 
 

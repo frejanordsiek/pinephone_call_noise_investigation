@@ -41,6 +41,12 @@ when computing the spectrogram. The default is ``2**18 = 262144`` (6 seconds at
 while averaging enough segments together to get a reasonably smooth spectrogram
 for a recording of about a minute.
 
+The ``-f FOCUSFREQUENCY`` and ``-w FOCUSWINDOW`` options specify a frequency
+window (center and width in Hz) to focus on for the last subplot of the
+spectrogram plot in order to focus on a particular region in the spectrogram.
+The default, 217 Hz with a width of 4 Hz, is centered on the first peak
+of the fequency comb on one particular pinephone.
+
 The ``-s`` option causes the spectrogram to be plotted in a GUI window when
 done to allow for easier viewing than a plot file provides.
 
