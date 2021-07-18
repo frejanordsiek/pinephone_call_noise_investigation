@@ -31,7 +31,7 @@ import scipy.signal
 import matplotlib.pylab as plt
 
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 
 def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
