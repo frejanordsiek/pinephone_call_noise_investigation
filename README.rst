@@ -41,6 +41,9 @@ good value to be able to resolve small frequency peaks while averaging enough
 segments together to get a reasonably smooth spectrogram for a recording of
 about a minute.
 
+The ``-s`` option causes the spectrogram to be plotted in a GUI window when
+done to allow for easier viewing than a plot file provides.
+
 The one mandatory argument (the last one) is the path to the sound file to read
 (WAV format).
 

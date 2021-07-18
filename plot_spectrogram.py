@@ -34,7 +34,8 @@ import matplotlib.pylab as plt
 __version__ = '0.1'
 
 
-def plot_spectrogram(sound_file, csv_file, plot_file, nperseg):
+def plot_spectrogram(sound_file, csv_file, plot_file, nperseg,
+                     showplot=False):
     """ Plot the spectogram recorded from the phone's microphone.
 
     Parameters
@@ -52,6 +53,9 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg):
     nperseg : int
         The number of samples per segment to use when calculating the
         spectrogram. Must be positive.
+    showplot : bool, optional
+        Whether a plot of the spectrogram should be shown in a GUI
+        window or not (default) at the end of processing.
 
     Raises
     ------
@@ -74,6 +78,8 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg):
         raise TypeError('nperseg must be int.')
     if nperseg < 1:
         raise ValueError('nperseg must be positive.')
+    if not isinstance(showplot, bool):
+        raise TypeError('showplot must be bool')
     # Read the data and convert to float.
     sample_frequency, raw_data = scipy.io.wavfile.read(sound_file)
     data = raw_data.astype('float32')
@@ -99,7 +105,7 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg):
     # which is different for each one. The upper frequency limits start
     # from the maximum available and work their way down to smaller and
     # smaller fequencies.
-    if plot_file is not None:
+    if plot_file is not None or showplot:
         fig, axs = plt.subplots(3, 1, figsize=(7.5, 10),
                                 constrained_layout=True)
         for i, upper_freq in enumerate((None, 5e3, 500.0)):
@@ -115,7 +121,10 @@ def plot_spectrogram(sound_file, csv_file, plot_file, nperseg):
                 ax.set_xlim((0, upper_freq))
             ax.grid('on')
             ax.tick_params(top=True, right=True)
-        fig.savefig(plot_file, dpi=150, pad_inches=0.0)
+        if plot_file is not None:
+            fig.savefig(plot_file, dpi=150, pad_inches=0.0)
+        if showplot:
+            plt.show()
 
 
 def _get_parser():
@@ -158,6 +167,9 @@ def _get_parser():
                         'resolution but result in less segments to '
                         'average together (more noise). The default is '
                         '2**14 = 16384.')
+    parser.add_argument('-s', '--show-plot', action='store_true',
+                        help='Show a plot of the spectrogram in a GUI '
+                        'window when done processing.')
     parser.add_argument('soundfile', metavar='SOUNDFILE', type=str,
                         help='The sound file to read. Must be a WAV '
                         'file.')
@@ -186,7 +198,8 @@ def main(argv=None):
     args = parser.parse_args(argv[1:])
 
     # Run.
-    plot_spectrogram(args.soundfile, args.csv, args.plot, args.n)
+    plot_spectrogram(args.soundfile, args.csv, args.plot, args.n,
+                     showplot=args.show_plot)
 
 
 # Run main.
