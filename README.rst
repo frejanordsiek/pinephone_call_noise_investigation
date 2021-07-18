@@ -36,10 +36,10 @@ The ``-p PLOTFILE`` option specifies the name of the file to write the plot
 to. The extension determines the image format.
 
 The ``-n NPERSEG`` option specifies the number of samples per segment to use
-when computing the spectrogram. The default is ``2**14 = 16384``, which is a
-good value to be able to resolve small frequency peaks while averaging enough
-segments together to get a reasonably smooth spectrogram for a recording of
-about a minute.
+when computing the spectrogram. The default is ``2**18 = 262144`` (6 seconds at
+44 kHz), which is a good value to be able to resolve small frequency peaks
+while averaging enough segments together to get a reasonably smooth spectrogram
+for a recording of about a minute.
 
 The ``-s`` option causes the spectrogram to be plotted in a GUI window when
 done to allow for easier viewing than a plot file provides.

@@ -160,13 +160,13 @@ def _get_parser():
                         'plot of the spectrogram. It must be an image '
                         'format supported by matplotlib (based on the '
                         'extension). By default, no plot is generated.')
-    parser.add_argument('-n', type=int, default=2**14,
+    parser.add_argument('-n', type=int, default=2**18,
                         help='The number of samples per segment to use '
                         'when calculating the spectrogram. Must be '
                         'positve. Larger values increase the fequency '
                         'resolution but result in less segments to '
                         'average together (more noise). The default is '
-                        '2**14 = 16384.')
+                        '2**18 = 262144.')
     parser.add_argument('-s', '--show-plot', action='store_true',
                         help='Show a plot of the spectrogram in a GUI '
                         'window when done processing.')
